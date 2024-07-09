@@ -361,3 +361,9 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+
+# Ignore all files inside the Logs folder
+Logs/*
+
+# But keep the Logs folder itself
+!Logs/.keep
