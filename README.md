@@ -75,7 +75,7 @@ BookLibraryAPI is a .NET 8-based RESTful API for managing books, authors, and ge
 
 Swagger is integrated for API documentation and testing. It allows you to interact with the API endpoints directly from your browser.
 
-- **URL**: [http://localhost:{port}/swagger/index.html](http://localhost:{port}/swagger/index.html)
+- **URL**: `/swagger/index.html`
 - **Features**:
   - Provides a web-based UI to explore and test API endpoints.
   - Displays detailed information about each API method, including parameters and responses.
