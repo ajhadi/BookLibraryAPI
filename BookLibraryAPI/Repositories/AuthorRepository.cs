@@ -36,6 +36,8 @@ namespace BookLibraryAPI.Repositories
         public async Task UpdateAsync(Author author)
         {
             var existingAuthor = await _context.Authors.FindAsync(author.Id);
+            if (existingAuthor == null)
+                throw new InvalidOperationException($"Author with ID {author.Id} not found.");
             _context.Entry(existingAuthor).CurrentValues.SetValues(author);
             await _context.SaveChangesAsync();
         }
@@ -43,6 +45,8 @@ namespace BookLibraryAPI.Repositories
         public async Task DeleteAsync(int id)
         {
             var author = await _context.Authors.FindAsync(id);
+            if (author == null)
+                throw new InvalidOperationException($"Author with ID {id} not found.");
             _context.Authors.Remove(author);
             await _context.SaveChangesAsync();
         }

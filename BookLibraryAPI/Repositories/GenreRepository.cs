@@ -14,7 +14,7 @@ namespace BookLibraryAPI.Repositories
             _context = context;
         }
 
-        public async Task<Genre> GetByIdAsync(int id)
+        public async Task<Genre?> GetByIdAsync(int id)
         {
             return await _context.Genres.FindAsync(id);
         }
@@ -34,6 +34,8 @@ namespace BookLibraryAPI.Repositories
         public async Task UpdateAsync(Genre genre)
         {
             var existingGenre = await _context.Genres.FindAsync(genre.Id);
+            if (existingGenre == null)
+                throw new InvalidOperationException($"Genre with ID {genre.Id} not found.");
             _context.Entry(existingGenre).CurrentValues.SetValues(genre);
             await _context.SaveChangesAsync();
         }
@@ -41,6 +43,8 @@ namespace BookLibraryAPI.Repositories
         public async Task DeleteAsync(int id)
         {
             var genre = await _context.Genres.FindAsync(id);
+            if (genre == null)
+                throw new InvalidOperationException($"Genre with ID {id} not found.");
             _context.Genres.Remove(genre);
             await _context.SaveChangesAsync();
         }

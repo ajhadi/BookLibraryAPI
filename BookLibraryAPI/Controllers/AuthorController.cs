@@ -68,7 +68,7 @@ namespace BookLibraryAPI.Controllers
                 return StatusCode((int)response.StatusCode, response);
             }
 
-            return CreatedAtAction(nameof(GetAuthor), new { id = response.Data.Id }, response);
+            return CreatedAtAction(nameof(GetAuthor), new { id = response.Data?.Id }, response);
         }
 
         /// <summary>
