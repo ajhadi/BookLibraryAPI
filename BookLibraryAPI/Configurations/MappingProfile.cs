@@ -9,15 +9,26 @@ namespace BookLibraryAPI.Configurations
     {
         public MappingProfile()
         {
+            // Genre mappings
             CreateMap<Genre, GenreDto>();
             CreateMap<CreateGenreDto, Genre>();
             CreateMap<UpdateGenreDto, Genre>();
+
+            // Author mappings
             CreateMap<Author, AuthorDto>();
-            CreateMap<Author, AuthorDetailDto>();
+            CreateMap<Author, AuthorDetailDto>()
+                .ForMember(dest => dest.Books, opt => opt.MapFrom(src => src.BookAuthors.Select(ba => ba.Book)));
+
             CreateMap<CreateAuthorDto, Author>();
             CreateMap<UpdateAuthorDto, Author>();
-            CreateMap<Book, BookDto>();
+
+            // Book mappings
+            CreateMap<Book, BookDto>()
+                .ForMember(dest => dest.Authors, opt => opt.MapFrom(src => src.BookAuthors.Select(ba => ba.Author)))
+                .ForMember(dest => dest.Genres, opt => opt.MapFrom(src => src.BookGenres.Select(bg => bg.Genre)));
+
             CreateMap<Book, AuthorBookDto>();
+
             CreateMap<CreateBookDto, Book>();
             CreateMap<UpdateBookDto, Book>();
         }
