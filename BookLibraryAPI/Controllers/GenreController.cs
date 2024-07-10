@@ -80,7 +80,7 @@ namespace BookLibraryAPI.Controllers
         /// </summary>
         /// <param name="id">The ID of the genre to update.</param>
         /// <param name="updateGenreDto">The updated genre data.</param>
-        /// <returns>No content on success.</returns>
+        /// <returns>Details of the update operation.</returns>
         [HttpPut("{id}")]
         public async Task<ActionResult<ServiceResponse>> UpdateGenre(int id, [FromBody] UpdateGenreDto updateGenreDto)
         {
@@ -101,14 +101,14 @@ namespace BookLibraryAPI.Controllers
                 return StatusCode((int)response.StatusCode, response);
             }
 
-            return NoContent();
+            return Ok(ServiceResponse.Success(HttpStatusCode.OK, "Genre updated successfully."));
         }
 
         /// <summary>
         /// Deletes a genre by ID.
         /// </summary>
         /// <param name="id">The ID of the genre to delete.</param>
-        /// <returns>No content on success.</returns>
+        /// <returns>Details of the delete operation.</returns>
         [HttpDelete("{id}")]
         public async Task<ActionResult<ServiceResponse>> DeleteGenre(int id)
         {
@@ -124,7 +124,7 @@ namespace BookLibraryAPI.Controllers
                 return StatusCode((int)response.StatusCode, response);
             }
 
-            return NoContent();
+            return Ok(ServiceResponse.Success(HttpStatusCode.OK, "Genre deleted successfully."));
         }
     }
 }

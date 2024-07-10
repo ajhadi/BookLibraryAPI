@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace BookLibraryAPI.Data.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class InitialMigration : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -18,7 +18,8 @@ namespace BookLibraryAPI.Data.Migrations
                     Id = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
                     FirstName = table.Column<string>(type: "TEXT", nullable: false),
-                    LastName = table.Column<string>(type: "TEXT", nullable: true)
+                    LastName = table.Column<string>(type: "TEXT", nullable: true),
+                    Biography = table.Column<string>(type: "TEXT", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -32,6 +33,10 @@ namespace BookLibraryAPI.Data.Migrations
                     Id = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
                     Title = table.Column<string>(type: "TEXT", nullable: false),
+                    Description = table.Column<string>(type: "TEXT", nullable: true),
+                    Publisher = table.Column<string>(type: "TEXT", nullable: true),
+                    CoverImageUrl = table.Column<string>(type: "TEXT", nullable: true),
+                    PageCount = table.Column<int>(type: "INTEGER", nullable: false),
                     PublicationDate = table.Column<DateOnly>(type: "TEXT", nullable: false)
                 },
                 constraints: table =>
@@ -53,23 +58,23 @@ namespace BookLibraryAPI.Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "BookAuthor",
+                name: "BookAuthors",
                 columns: table => new
                 {
-                    AuthorId = table.Column<int>(type: "INTEGER", nullable: false),
-                    BookId = table.Column<int>(type: "INTEGER", nullable: false)
+                    BookId = table.Column<int>(type: "INTEGER", nullable: false),
+                    AuthorId = table.Column<int>(type: "INTEGER", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_BookAuthor", x => new { x.AuthorId, x.BookId });
+                    table.PrimaryKey("PK_BookAuthors", x => new { x.BookId, x.AuthorId });
                     table.ForeignKey(
-                        name: "FK_BookAuthor_Authors_AuthorId",
+                        name: "FK_BookAuthors_Authors_AuthorId",
                         column: x => x.AuthorId,
                         principalTable: "Authors",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_BookAuthor_Books_BookId",
+                        name: "FK_BookAuthors_Books_BookId",
                         column: x => x.BookId,
                         principalTable: "Books",
                         principalColumn: "Id",
@@ -77,7 +82,7 @@ namespace BookLibraryAPI.Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "BookGenre",
+                name: "BookGenres",
                 columns: table => new
                 {
                     BookId = table.Column<int>(type: "INTEGER", nullable: false),
@@ -85,15 +90,15 @@ namespace BookLibraryAPI.Data.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_BookGenre", x => new { x.BookId, x.GenreId });
+                    table.PrimaryKey("PK_BookGenres", x => new { x.BookId, x.GenreId });
                     table.ForeignKey(
-                        name: "FK_BookGenre_Books_BookId",
+                        name: "FK_BookGenres_Books_BookId",
                         column: x => x.BookId,
                         principalTable: "Books",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_BookGenre_Genres_GenreId",
+                        name: "FK_BookGenres_Genres_GenreId",
                         column: x => x.GenreId,
                         principalTable: "Genres",
                         principalColumn: "Id",
@@ -101,13 +106,13 @@ namespace BookLibraryAPI.Data.Migrations
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_BookAuthor_BookId",
-                table: "BookAuthor",
-                column: "BookId");
+                name: "IX_BookAuthors_AuthorId",
+                table: "BookAuthors",
+                column: "AuthorId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_BookGenre_GenreId",
-                table: "BookGenre",
+                name: "IX_BookGenres_GenreId",
+                table: "BookGenres",
                 column: "GenreId");
         }
 
@@ -115,10 +120,10 @@ namespace BookLibraryAPI.Data.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "BookAuthor");
+                name: "BookAuthors");
 
             migrationBuilder.DropTable(
-                name: "BookGenre");
+                name: "BookGenres");
 
             migrationBuilder.DropTable(
                 name: "Authors");

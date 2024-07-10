@@ -12,7 +12,7 @@ namespace BookLibraryAPI.DTOs
         public string? CoverImageUrl { get; set; }
         public int PageCount { get; set; }
         public DateOnly PublicationDate { get; set; }
-        public List<AuthorBookDto> Authors { get; set; } = new();
+        public List<AuthorDto> Authors { get; set; } = new();
         public List<GenreDto> Genres { get; set; } = new();
     }
     public class CreateBookDto

@@ -9,7 +9,7 @@
         public string? CoverImageUrl { get; set; }
         public int PageCount { get; set; }
         public DateOnly PublicationDate { get; set; }
-        public List<Author> Authors { get; set; } = [];
-        public List<Genre> Genres { get; set; } = [];
+        public List<BookAuthor> BookAuthors { get; set; } = [];
+        public List<BookGenre> BookGenres { get; set; } = [];
     }
 }

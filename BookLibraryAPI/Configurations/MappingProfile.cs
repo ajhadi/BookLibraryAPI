@@ -13,8 +13,13 @@ namespace BookLibraryAPI.Configurations
             CreateMap<CreateGenreDto, Genre>();
             CreateMap<UpdateGenreDto, Genre>();
             CreateMap<Author, AuthorDto>();
+            CreateMap<Author, AuthorDetailDto>();
             CreateMap<CreateAuthorDto, Author>();
             CreateMap<UpdateAuthorDto, Author>();
+            CreateMap<Book, BookDto>();
+            CreateMap<Book, AuthorBookDto>();
+            CreateMap<CreateBookDto, Book>();
+            CreateMap<UpdateBookDto, Book>();
         }
     }
 }

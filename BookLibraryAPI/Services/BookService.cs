@@ -3,7 +3,6 @@ using BookLibraryAPI.DTOs;
 using BookLibraryAPI.Models;
 using BookLibraryAPI.Repositories.Interfaces;
 using BookLibraryAPI.Services.Interfaces;
-using Microsoft.Extensions.Logging;
 using System.Net;
 
 namespace BookLibraryAPI.Services
@@ -11,12 +10,16 @@ namespace BookLibraryAPI.Services
     public class BookService : IBookService
     {
         private readonly IBookRepository _bookRepository;
+        private readonly IAuthorRepository _authorRepository;
+        private readonly IGenreRepository _genreRepository;
         private readonly IMapper _mapper;
         private readonly ILogger<BookService> _logger;
 
-        public BookService(IBookRepository bookRepository, IMapper mapper, ILogger<BookService> logger)
+        public BookService(IBookRepository bookRepository, IAuthorRepository authorRepository, IGenreRepository genreRepository, IMapper mapper, ILogger<BookService> logger)
         {
             _bookRepository = bookRepository;
+            _authorRepository = authorRepository;
+            _genreRepository = genreRepository;
             _mapper = mapper;
             _logger = logger;
         }
@@ -28,7 +31,7 @@ namespace BookLibraryAPI.Services
                 var books = await _bookRepository.GetAllAsync();
                 var bookDtos = _mapper.Map<IEnumerable<BookDto>>(books);
                 _logger.LogInformation("Successfully retrieved all books.");
-                return ServiceResponse<IEnumerable<BookDto>>.Success(bookDtos);
+                return ServiceResponse<IEnumerable<BookDto>>.Success(bookDtos, HttpStatusCode.OK, "All books retrieved successfully.");
             }
             catch (Exception ex)
             {
@@ -50,7 +53,7 @@ namespace BookLibraryAPI.Services
 
                 var bookDto = _mapper.Map<BookDto>(book);
                 _logger.LogInformation($"Successfully retrieved book with ID {id}.");
-                return ServiceResponse<BookDto>.Success(bookDto);
+                return ServiceResponse<BookDto>.Success(bookDto, HttpStatusCode.OK, "Book retrieved successfully.");
             }
             catch (Exception ex)
             {
@@ -58,14 +61,50 @@ namespace BookLibraryAPI.Services
                 return ServiceResponse<BookDto>.Failure(HttpStatusCode.InternalServerError, "An error occurred while retrieving the book.");
             }
         }
-
         public async Task<ServiceResponse<BookDto>> CreateAsync(CreateBookDto createBookDto)
         {
             try
             {
+                var selectedAuthors = await _authorRepository.GetByIdsAsync(createBookDto.AuthorIds);
+                var authorIdsFound = selectedAuthors.Select(a => a.Id).ToHashSet();
+                var authorIdsRequested = createBookDto.AuthorIds.ToHashSet();
+
+                var missingAuthorIds = authorIdsRequested.Except(authorIdsFound).ToList();
+                if (missingAuthorIds.Any())
+                {
+                    return ServiceResponse<BookDto>.Failure(HttpStatusCode.BadRequest, $"The following author IDs were not found: {string.Join(", ", missingAuthorIds)}");
+                }
+
+                var selectedGenres = await _genreRepository.GetByIdsAsync(createBookDto.GenreIds);
+                var genreIdsFound = selectedGenres.Select(g => g.Id).ToHashSet();
+                var genreIdsRequested = createBookDto.GenreIds.ToHashSet();
+
+                var missingGenreIds = genreIdsRequested.Except(genreIdsFound).ToList();
+                if (missingGenreIds.Any())
+                {
+                    return ServiceResponse<BookDto>.Failure(HttpStatusCode.BadRequest, $"The following genre IDs were not found: {string.Join(", ", missingGenreIds)}");
+                }
+
                 var book = _mapper.Map<Book>(createBookDto);
+
+                var bookAuthors = createBookDto.AuthorIds.Select(authorId => new BookAuthor
+                {
+                    BookId = book.Id,
+                    AuthorId = authorId
+                }).ToList();
+
+                var bookGenres = createBookDto.GenreIds.Select(genreId => new BookGenre
+                {
+                    BookId = book.Id,
+                    GenreId = genreId
+                }).ToList();
+
+                book.BookAuthors = bookAuthors;
+                book.BookGenres = bookGenres;
+
                 var createdBook = await _bookRepository.AddAsync(book);
                 var bookDto = _mapper.Map<BookDto>(createdBook);
+
                 _logger.LogInformation($"Book created successfully with ID {createdBook.Id}.");
                 return ServiceResponse<BookDto>.Success(bookDto, HttpStatusCode.Created, "Book created successfully.");
             }
@@ -75,6 +114,9 @@ namespace BookLibraryAPI.Services
                 return ServiceResponse<BookDto>.Failure(HttpStatusCode.InternalServerError, "An error occurred while creating the book.");
             }
         }
+
+
+
 
         public async Task<ServiceResponse> UpdateAsync(int id, UpdateBookDto updateBookDto)
         {
@@ -87,8 +129,30 @@ namespace BookLibraryAPI.Services
                     return ServiceResponse.Failure(HttpStatusCode.NotFound, "Book not found.");
                 }
 
-                var book = _mapper.Map(updateBookDto, existingBook);
-                await _bookRepository.UpdateAsync(book);
+                var selectedAuthors = await _authorRepository.GetByIdsAsync(updateBookDto.AuthorIds);
+                var authorIdsFound = selectedAuthors.Select(a => a.Id).ToHashSet();
+                var authorIdsRequested = updateBookDto.AuthorIds.ToHashSet();
+
+                var missingAuthorIds = authorIdsRequested.Except(authorIdsFound).ToList();
+                if (missingAuthorIds.Any())
+                {
+                    return ServiceResponse.Failure(HttpStatusCode.BadRequest, $"The following author IDs were not found: {string.Join(", ", missingAuthorIds)}");
+                }
+
+                var selectedGenres = await _genreRepository.GetByIdsAsync(updateBookDto.GenreIds);
+                var genreIdsFound = selectedGenres.Select(g => g.Id).ToHashSet();
+                var genreIdsRequested = updateBookDto.GenreIds.ToHashSet();
+
+                var missingGenreIds = genreIdsRequested.Except(genreIdsFound).ToList();
+                if (missingGenreIds.Any())
+                {
+                    return ServiceResponse.Failure(HttpStatusCode.BadRequest, $"The following genre IDs were not found: {string.Join(", ", missingGenreIds)}");
+                }
+
+                var book = _mapper.Map<Book>(updateBookDto);
+                book.Id = id;
+
+                await _bookRepository.UpdateAsync(book, updateBookDto.AuthorIds, updateBookDto.GenreIds);
                 _logger.LogInformation($"Book updated successfully with ID {id}.");
                 return ServiceResponse.Success(HttpStatusCode.NoContent, "Book updated successfully.");
             }
@@ -98,6 +162,7 @@ namespace BookLibraryAPI.Services
                 return ServiceResponse.Failure(HttpStatusCode.InternalServerError, "An error occurred while updating the book.");
             }
         }
+
 
         public async Task<ServiceResponse> DeleteAsync(int id)
         {

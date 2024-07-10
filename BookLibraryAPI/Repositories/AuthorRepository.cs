@@ -17,13 +17,22 @@ namespace BookLibraryAPI.Repositories
         public async Task<Author?> GetByIdAsync(int id)
         {
             return await _context.Authors
-                .Include(a => a.Books)
+                .Include(a => a.BookAuthors)
+                    .ThenInclude(a => a.Book)
                 .FirstOrDefaultAsync(a => a.Id == id);
         }
 
         public async Task<IEnumerable<Author>> GetAllAsync()
         {
             return await _context.Authors.ToListAsync();
+        }
+
+        public async Task<IEnumerable<Author>> GetByIdsAsync(IEnumerable<int> ids)
+        {
+            return await _context.Authors
+                .AsNoTracking()
+                .Where(a => ids.Contains(a.Id))
+                .ToListAsync();
         }
 
         public async Task<Author> AddAsync(Author author)

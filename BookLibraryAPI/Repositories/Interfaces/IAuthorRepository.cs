@@ -6,6 +6,7 @@ namespace BookLibraryAPI.Repositories.Interfaces
     {
         Task<Author?> GetByIdAsync(int id);
         Task<IEnumerable<Author>> GetAllAsync();
+        Task<IEnumerable<Author>> GetByIdsAsync(IEnumerable<int> ids);
         Task<Author> AddAsync(Author author);
         Task UpdateAsync(Author author);
         Task DeleteAsync(int id);

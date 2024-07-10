@@ -33,7 +33,7 @@ namespace BookLibraryAPI.Services
                 }
                 var genreDto = _mapper.Map<GenreDto>(genre);
                 _logger.LogInformation($"Successfully retrieved genre with ID {id}.");
-                return ServiceResponse<GenreDto>.Success(genreDto);
+                return ServiceResponse<GenreDto>.Success(genreDto, HttpStatusCode.OK, "Genre retrieved successfully.");
             }
             catch (Exception ex)
             {
@@ -49,7 +49,7 @@ namespace BookLibraryAPI.Services
                 var genres = await _genreRepository.GetAllAsync();
                 var genreDtos = _mapper.Map<IEnumerable<GenreDto>>(genres);
                 _logger.LogInformation("Successfully retrieved all genres.");
-                return ServiceResponse<IEnumerable<GenreDto>>.Success(genreDtos);
+                return ServiceResponse<IEnumerable<GenreDto>>.Success(genreDtos, HttpStatusCode.OK, "All genres retrieved successfully.");
             }
             catch (Exception ex)
             {

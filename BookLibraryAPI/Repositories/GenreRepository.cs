@@ -31,6 +31,14 @@ namespace BookLibraryAPI.Repositories
             return genre;
         }
 
+        public async Task<IEnumerable<Genre>> GetByIdsAsync(IEnumerable<int> ids)
+        {
+            return await _context.Genres
+                .AsNoTracking()
+                .Where(g => ids.Contains(g.Id))
+                .ToListAsync();
+        }
+
         public async Task UpdateAsync(Genre genre)
         {
             var existingGenre = await _context.Genres.FindAsync(genre.Id);

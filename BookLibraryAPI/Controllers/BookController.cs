@@ -76,7 +76,7 @@ namespace BookLibraryAPI.Controllers
         /// </summary>
         /// <param name="id">The ID of the book to update.</param>
         /// <param name="updateBookDto">The updated book data.</param>
-        /// <returns>No content on success.</returns>
+        /// <returns>Details of the update operation.</returns>
         [HttpPut("{id}")]
         public async Task<ActionResult<ServiceResponse>> UpdateBook(int id, [FromBody] UpdateBookDto updateBookDto)
         {
@@ -97,14 +97,14 @@ namespace BookLibraryAPI.Controllers
                 return StatusCode((int)response.StatusCode, response);
             }
 
-            return NoContent();
+            return Ok(ServiceResponse.Success(HttpStatusCode.OK, "Book updated successfully."));
         }
 
         /// <summary>
         /// Deletes a book by ID.
         /// </summary>
         /// <param name="id">The ID of the book to delete.</param>
-        /// <returns>No content on success.</returns>
+        /// <returns>Details of the delete operation.</returns>
         [HttpDelete("{id}")]
         public async Task<ActionResult<ServiceResponse>> DeleteBook(int id)
         {
@@ -120,7 +120,7 @@ namespace BookLibraryAPI.Controllers
                 return StatusCode((int)response.StatusCode, response);
             }
 
-            return NoContent();
+            return Ok(ServiceResponse.Success(HttpStatusCode.OK, "Book deleted successfully."));
         }
     }
 }

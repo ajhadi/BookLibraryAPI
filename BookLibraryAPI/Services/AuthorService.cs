@@ -34,7 +34,7 @@ namespace BookLibraryAPI.Services
                 var authorDetailDto = _mapper.Map<AuthorDetailDto>(author);
 
                 _logger.LogInformation($"Successfully retrieved author with ID {id}.");
-                return ServiceResponse<AuthorDetailDto>.Success(authorDetailDto);
+                return ServiceResponse<AuthorDetailDto>.Success(authorDetailDto, HttpStatusCode.OK, "Author retrieved successfully.");
             }
             catch (Exception ex)
             {
@@ -50,7 +50,7 @@ namespace BookLibraryAPI.Services
                 var authors = await _authorRepository.GetAllAsync();
                 var authorDtos = _mapper.Map<IEnumerable<AuthorDto>>(authors);
                 _logger.LogInformation("Successfully retrieved all authors.");
-                return ServiceResponse<IEnumerable<AuthorDto>>.Success(authorDtos);
+                return ServiceResponse<IEnumerable<AuthorDto>>.Success(authorDtos, HttpStatusCode.OK, "All authors retrieved successfully.");
             }
             catch (Exception ex)
             {
@@ -86,8 +86,8 @@ namespace BookLibraryAPI.Services
                     _logger.LogWarning($"Author with ID {id} not found for update.");
                     return ServiceResponse.Failure(HttpStatusCode.NotFound, "Author not found.");
                 }
-                var originalAuthor = _mapper.Map<Author>(author);
-                if (AreAuthorsEqual(author, originalAuthor))
+                var updateAuthor = _mapper.Map<Author>(updateAuthorDto);
+                if (AreAuthorsEqual(updateAuthor, author))
                 {
                     _logger.LogInformation($"No changes detected for author with ID {id}.");
                     return ServiceResponse.Success(HttpStatusCode.NoContent, "No changes detected.");
@@ -125,6 +125,7 @@ namespace BookLibraryAPI.Services
                 return ServiceResponse.Failure(HttpStatusCode.InternalServerError, "An error occurred while deleting the author.");
             }
         }
+
         private bool AreAuthorsEqual(Author a1, Author a2)
         {
             return a1.FirstName == a2.FirstName &&
