@@ -42,19 +42,39 @@ namespace BookLibraryAPI.Repositories
         public async Task UpdateAsync(Genre genre)
         {
             var existingGenre = await _context.Genres.FindAsync(genre.Id);
+
             if (existingGenre == null)
                 throw new InvalidOperationException($"Genre with ID {genre.Id} not found.");
+
             _context.Entry(existingGenre).CurrentValues.SetValues(genre);
             await _context.SaveChangesAsync();
         }
 
         public async Task DeleteAsync(int id)
         {
-            var genre = await _context.Genres.FindAsync(id);
-            if (genre == null)
-                throw new InvalidOperationException($"Genre with ID {id} not found.");
-            _context.Genres.Remove(genre);
-            await _context.SaveChangesAsync();
+            using var transaction = await _context.Database.BeginTransactionAsync();
+
+            try
+            {
+                var genre = await _context.Genres
+                    .Include(g => g.BookGenres)
+                    .FirstOrDefaultAsync(g => g.Id == id);
+
+                if (genre == null)
+                    throw new InvalidOperationException($"Genre with ID {id} not found.");
+
+                _context.BookGenres.RemoveRange(genre.BookGenres);
+                _context.Genres.Remove(genre);
+
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                throw new InvalidOperationException("An error occurred while deleting the genre.", ex);
+            }
         }
+
     }
 }

@@ -45,19 +45,39 @@ namespace BookLibraryAPI.Repositories
         public async Task UpdateAsync(Author author)
         {
             var existingAuthor = await _context.Authors.FindAsync(author.Id);
+
             if (existingAuthor == null)
                 throw new InvalidOperationException($"Author with ID {author.Id} not found.");
+
             _context.Entry(existingAuthor).CurrentValues.SetValues(author);
             await _context.SaveChangesAsync();
         }
 
         public async Task DeleteAsync(int id)
         {
-            var author = await _context.Authors.FindAsync(id);
-            if (author == null)
-                throw new InvalidOperationException($"Author with ID {id} not found.");
-            _context.Authors.Remove(author);
-            await _context.SaveChangesAsync();
+            using var transaction = await _context.Database.BeginTransactionAsync();
+
+            try
+            {
+                var author = await _context.Authors
+                    .Include(a => a.BookAuthors)
+                    .FirstOrDefaultAsync(a => a.Id == id);
+
+                if (author == null)
+                    throw new InvalidOperationException($"Author with ID {id} not found.");
+
+                _context.BookAuthors.RemoveRange(author.BookAuthors);
+                _context.Authors.Remove(author);
+
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                throw new InvalidOperationException("An error occurred while deleting the author.", ex);
+            }
         }
+
     }
 }

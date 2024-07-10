@@ -44,51 +44,78 @@ namespace BookLibraryAPI.Repositories
 
         public async Task UpdateAsync(Book book, List<int> newAuthorIds, List<int> newGenreIds)
         {
-            var existingBook = await _context.Books
-                .Include(b => b.BookAuthors)
-                .Include(b => b.BookGenres)
-                .FirstOrDefaultAsync(b => b.Id == book.Id);
+            using var transaction = await _context.Database.BeginTransactionAsync();
 
-            if (existingBook != null)
+            try
             {
-                _context.Entry(existingBook).CurrentValues.SetValues(book);
+                var existingBook = await _context.Books
+                    .Include(b => b.BookAuthors)
+                    .Include(b => b.BookGenres)
+                    .FirstOrDefaultAsync(b => b.Id == book.Id);
 
-                _context.BookAuthors.RemoveRange(existingBook.BookAuthors);
-                _context.BookGenres.RemoveRange(existingBook.BookGenres);
-
-                var newBookAuthors = newAuthorIds.Select(authorId => new BookAuthor
+                if (existingBook != null)
                 {
-                    BookId = book.Id,
-                    AuthorId = authorId
-                }).ToList();
+                    _context.Entry(existingBook).CurrentValues.SetValues(book);
 
-                var newBookGenres = newGenreIds.Select(genreId => new BookGenre
-                {
-                    BookId = book.Id,
-                    GenreId = genreId
-                }).ToList();
+                    _context.BookAuthors.RemoveRange(existingBook.BookAuthors);
+                    _context.BookGenres.RemoveRange(existingBook.BookGenres);
 
-                _context.BookAuthors.AddRange(newBookAuthors);
-                _context.BookGenres.AddRange(newBookGenres);
+                    var newBookAuthors = newAuthorIds.Select(authorId => new BookAuthor
+                    {
+                        BookId = book.Id,
+                        AuthorId = authorId
+                    }).ToList();
 
-                await _context.SaveChangesAsync();
+                    var newBookGenres = newGenreIds.Select(genreId => new BookGenre
+                    {
+                        BookId = book.Id,
+                        GenreId = genreId
+                    }).ToList();
+
+                    _context.BookAuthors.AddRange(newBookAuthors);
+                    _context.BookGenres.AddRange(newBookGenres);
+
+                    await _context.SaveChangesAsync();
+                }
+
+                await transaction.CommitAsync();
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                throw new InvalidOperationException("An error occurred while updating the book.", ex);
             }
         }
+
 
         public async Task DeleteAsync(int id)
         {
-            var book = await _context.Books
-                .Include(b => b.BookAuthors)
-                .Include(b => b.BookGenres)
-                .FirstOrDefaultAsync(b => b.Id == id);
+            using var transaction = await _context.Database.BeginTransactionAsync();
 
-            if (book != null)
+            try
             {
-                _context.BookAuthors.RemoveRange(book.BookAuthors);
-                _context.BookGenres.RemoveRange(book.BookGenres);
-                _context.Books.Remove(book);
-                await _context.SaveChangesAsync();
+                var book = await _context.Books
+                    .Include(b => b.BookAuthors)
+                    .Include(b => b.BookGenres)
+                    .FirstOrDefaultAsync(b => b.Id == id);
+
+                if (book != null)
+                {
+                    _context.BookAuthors.RemoveRange(book.BookAuthors);
+                    _context.BookGenres.RemoveRange(book.BookGenres);
+                    _context.Books.Remove(book);
+
+                    await _context.SaveChangesAsync();
+                }
+
+                await transaction.CommitAsync();
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                throw new InvalidOperationException("An error occurred while deleting the book.", ex);
             }
         }
+
     }
 }
